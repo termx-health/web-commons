@@ -1,5 +1,5 @@
 import { OnDestroy, Pipe, PipeTransform } from '@angular/core';
-import { equalsDeep, format as formatDate, getDateFormat, isNil, isValid } from '../../utils';
+import { equalsDeep, format as formatDate, getDateDisplayFormat, isNil, isValid } from '../../utils';
 import { LIB_CONTEXT } from '../../core-util.context';
 import { CoreI18nBasePipe, CoreI18nService } from '../../i18n';
 
@@ -15,7 +15,7 @@ export class LocalDatePipe extends CoreI18nBasePipe implements PipeTransform, On
   }
 
   public updateValue(date?: Date | string, format?: string, locale: string = LIB_CONTEXT.locale): void {
-    this.formattedDate = isValid(date) ? formatDate(date, format || getDateFormat(locale)) : undefined;
+    this.formattedDate = isValid(date) ? formatDate(date, format || getDateDisplayFormat(locale)) : undefined;
     this.latestDate = date;
     this.latestParams = {format, locale};
   }
