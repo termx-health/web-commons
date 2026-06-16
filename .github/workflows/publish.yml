@@ -11,86 +11,42 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v5
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            core-util:
-              - 'core-util/package.json'
-            ui:
-              - 'ui/package.json'
-            util:
-              - 'util/package.json'
-            quill:
-              - 'quill/package.json'
-            markdown:
-              - 'markdown/package.json'
-            markdown-parser:
-              - 'markdown-parser/package.json'
       - uses: actions/setup-node@v4
         with:
           node-version: '22.x'
           registry-url: 'https://npm.pkg.github.com'
           scope: '@termx-health'
-      - name: Check versions before publish
-        run: |
-          check_version() {
-            local dir="$1" filter="$2"
-            if [ "$filter" != "true" ]; then return; fi
-            local name=$(node -p "require('./$dir/package.json').name")
-            local version=$(node -p "require('./$dir/package.json').version")
-            echo "Checking $name@$version..."
-            if npm view "$name@$version" version --registry=https://npm.pkg.github.com 2>/dev/null; then
-              echo "::error::$name@$version already exists on the registry. Bump the version in $dir/package.json before pushing."
-              exit 1
-            fi
-            echo "  OK — $name@$version is not yet published."
-          }
-          check_version core-util "${{ steps.filter.outputs.core-util }}"
-          check_version ui "${{ steps.filter.outputs.ui }}"
-          check_version util "${{ steps.filter.outputs.util }}"
-          check_version quill "${{ steps.filter.outputs.quill }}"
-          check_version markdown "${{ steps.filter.outputs.markdown }}"
-          check_version markdown-parser "${{ steps.filter.outputs.markdown-parser }}"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Install dependencies
         run: npm ci
       - name: Build
         run: npm run build
-      - name: Publish core-util
-        if: steps.filter.outputs.core-util == 'true'
-        working-directory: dist/core-util
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish ui
-        if: steps.filter.outputs.ui == 'true'
-        working-directory: dist/ui
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish util
-        if: steps.filter.outputs.util == 'true'
-        working-directory: dist/util
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish quill
-        if: steps.filter.outputs.quill == 'true'
-        working-directory: dist/quill
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish markdown-parser
-        if: steps.filter.outputs.markdown-parser == 'true'
-        working-directory: dist/markdown-parser
-        run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Publish markdown
-        if: steps.filter.outputs.markdown == 'true'
-        working-directory: dist/markdown
-        run: npm publish
+      # Publish each built package only if its exact version is not already on the registry.
+      # This is idempotent: re-runs publish nothing new, and bumping a single package's
+      # version publishes just that one (no dependency on which files "changed").
+      - name: Publish new package versions
+        run: |
+          set -euo pipefail
+          publish_if_new() {
+            local dir="dist/$1"
+            if [ ! -f "$dir/package.json" ]; then
+              echo "::warning::$1 was not built ($dir/package.json missing), skipping"
+              return
+            fi
+            local name version
+            name=$(node -p "require('./$dir/package.json').name")
+            version=$(node -p "require('./$dir/package.json').version")
+            if npm view "$name@$version" version --registry=https://npm.pkg.github.com >/dev/null 2>&1; then
+              echo "= $name@$version already published — skipping"
+            else
+              echo "+ publishing $name@$version"
+              (cd "$dir" && npm publish)
+            fi
+          }
+          publish_if_new core-util
+          publish_if_new util
+          publish_if_new ui
+          publish_if_new markdown-parser
+          publish_if_new markdown
+          publish_if_new quill
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
