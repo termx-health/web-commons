@@ -17,6 +17,9 @@ const fontMap: {[preset: string]: string} = {
 
     <m-modal [mVisible]="accessibility.modalVisible" (mClose)="accessibility.modalVisible = false">
       <div *m-modal-content>
+        <!-- Optional app-provided content (e.g. a theme/appearance selector) rendered above font size. -->
+        <ng-container *ngTemplateOutlet="mExtraContent"></ng-container>
+
         <m-form-item mLabel="marina.ui.page.accessibility.fontSize.header">
           <m-radio-group [(ngModel)]="accessibility.fontSize" mVertical>
             <label m-radio mValue="normal">{{'marina.ui.page.accessibility.fontSize.normal' | i18n}}</label>
@@ -37,6 +40,9 @@ const fontMap: {[preset: string]: string} = {
   }
 })
 export class MuiPageHeaderAccessibilityComponent {
+  /** Optional app-provided content rendered inside the accessibility modal (e.g. a theme selector). */
+  @Input() public mExtraContent?: TemplateRef<any>;
+
   public accessibility = {
     modalVisible: false,
     fontSize: 'normal',
@@ -100,7 +106,7 @@ export interface MuiPageUserInfo {
 
 
         <m-dropdown mOverlayClassName="m-page-header__dropdown {{mLogout.observed && mAuthenticated ? 'm-page-header__dropdown-with-logout': ''}}">
-          <m-page-header-accessibility class="m-page-header__dropdown__border-bottom" *m-dropdown-item/>
+          <m-page-header-accessibility class="m-page-header__dropdown__border-bottom" *m-dropdown-item [mExtraContent]="mAccessibilityContent"/>
 
           <ng-container *ngIf="mLangChange.observed">
             <ng-container *ngFor="let lang of systemLanguages | keys">
@@ -136,6 +142,7 @@ export class MuiPageHeaderComponent {
   @Input() public mTitle?: string | TemplateRef<any>;
   @Input() @BooleanInput() public mAuthenticated: boolean;
   @Input() public mUserInfo: MuiPageUserInfo;
+  @Input() public mAccessibilityContent?: TemplateRef<any>;
   @Input() @BooleanInput() public mMenuCollapsed: boolean = true;
 
   @Output() public mMenuCollapsedChange = new EventEmitter<boolean>();

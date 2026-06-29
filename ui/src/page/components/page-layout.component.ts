@@ -25,6 +25,7 @@ import {MuiPageMenuItem} from './page-menu.component';
           [mTitle]="title"
           [mAuthenticated]="mAuthenticated"
           [mUserInfo]="mUserInfo"
+          [mAccessibilityContent]="mAccessibilityContent"
           [(mMenuCollapsed)]="isMenuCollapsed"
           (mMenuCollapsedChange)="isMenuVisible = !$event"
           (mLangChange)="onLangSelect($event)"
@@ -65,6 +66,7 @@ export class MuiPageLayoutComponent {
   @Input() public mTitle: string | TemplateRef<any>;
   @Input() @BooleanInput() public mAuthenticated: boolean;
   @Input() public mUserInfo: MuiPageUserInfo;
+  @Input() public mAccessibilityContent?: TemplateRef<any>;
 
   @Input() public mMenu: MuiPageMenuItem[] = [];
   @Input() public mMenuMode: 'vertical' | 'horizontal' = 'vertical';
