@@ -5,6 +5,15 @@
 @border-radius-base: 4px;
 @component-background: white;
 
+// Accessibility (WCAG 2.1 AA): ng-zorro's default secondary-text and placeholder greys fail
+// contrast on white — @text-color-secondary = fade(#000, 45%) ≈ #8c8c8c (3.36:1) and
+// @input-placeholder-color = hsv(0, 0, 75%) ≈ #bfbfbf (1.84:1), both below the 4.5:1 threshold
+// for normal text. Darken to passing greys. These also flow into --color-text-secondary via
+// themes/ng-zorro.less. @disabled-color is intentionally left as-is: disabled controls are
+// exempt from success criterion 1.4.3.
+@text-color-secondary: #595959;      // 7.0:1 on white
+@input-placeholder-color: #767676;   // 4.54:1 on white
+
 
 // -------- MUI overrides based on NgZorro colors --------
 @import "ng-zorro";
