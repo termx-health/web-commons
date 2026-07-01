@@ -7,7 +7,9 @@
   text-align: center;
 
   margin: .5rem 0;
-  color: rgba(0, 0, 0, 0.25);
+  // WCAG 2.1 AA: rgba(0,0,0,.25) ≈ #bfbfbf is 1.84:1 on white — the "No data" message conveys
+  // information, so it is not exempt as a disabled control. #757575 is 4.61:1.
+  color: #757575;
 
   p {
     margin: 0;
